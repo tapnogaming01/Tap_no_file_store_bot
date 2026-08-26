@@ -5,18 +5,22 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from config import BOT_USERNAME, DEVELOPER_LINK, SUPPORT_GROUP, MAIN_CHANNEL
 from database import get_shortener_config
 
+# Safe URL helper to prevent NoneType crash
+def safe_url(url_val, default="https://t.me"):
+    if not url_val or not isinstance(url_val, str) or not url_val.startswith("http"):
+        return default
+    return url_val
+
 def parse_caption(caption: str):
     if not caption:
         return None, None, None
 
-    # Remove multi-lines, extract 1st line strictly
     lines = [line.strip() for line in caption.split("\n") if line.strip()]
     if not lines:
         return None, None, None
         
     first_line = lines[0]
 
-    # Pattern Match: EPS 01-10 or EPISODE 1 TO 10
     range_match = re.search(r'(?:EPS|EP|EPISODE|EPISODES)?\s*(\d+)\s*(?:-|TO|\b)\s*(\d+)', first_line, re.IGNORECASE)
     if range_match:
         start_ep = int(range_match.group(1))
@@ -24,7 +28,6 @@ def parse_caption(caption: str):
         story_name = first_line[:range_match.start()].strip().rstrip("-|:").strip()
         return story_name.upper() if story_name else "STORY BATCH", start_ep, end_ep
 
-    # Pattern Match: Single EP 01
     single_match = re.search(r'(?:EPS|EP|EPISODE)?\s*(\d+)', first_line, re.IGNORECASE)
     if single_match:
         ep_num = int(single_match.group(1))
@@ -61,12 +64,12 @@ def get_channel_post_buttons(start_ep, end_ep, file_token):
 
     return InlineKeyboardMarkup([
         [InlineKeyboardButton(f"📥 {label} ↗️", url=f"https://t.me/{BOT_USERNAME}?start={file_token}")],
-        [InlineKeyboardButton("💬 SUPPORT", url=SUPPORT_GROUP), InlineKeyboardButton("📢 CHANNEL", url=MAIN_CHANNEL)],
-        [InlineKeyboardButton("👨‍💻 DEVELOPER", url=DEVELOPER_LINK)]
+        [InlineKeyboardButton("💬 SUPPORT", url=safe_url(SUPPORT_GROUP)), InlineKeyboardButton("📢 CHANNEL", url=safe_url(MAIN_CHANNEL))],
+        [InlineKeyboardButton("👨‍💻 DEVELOPER", url=safe_url(DEVELOPER_LINK))]
     ])
 
 def get_start_buttons():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📢 Main Channel", url=MAIN_CHANNEL), InlineKeyboardButton("💬 Support Group", url=SUPPORT_GROUP)],
-        [InlineKeyboardButton("ℹ️ About Bot", callback_data="about_btn"), InlineKeyboardButton("👨‍💻 Developer", url=DEVELOPER_LINK)]
+        [InlineKeyboardButton("📢 Main Channel", url=safe_url(MAIN_CHANNEL)), InlineKeyboardButton("💬 Support Group", url=safe_url(SUPPORT_GROUP))],
+        [InlineKeyboardButton("ℹ️ About Bot", callback_data="about_btn"), InlineKeyboardButton("👨‍💻 Developer", url=safe_url(DEVELOPER_LINK))]
     ])
