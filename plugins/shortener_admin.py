@@ -17,9 +17,9 @@ async def set_shortener_time_cmd(client, message):
     try:
         hours = float(message.command[1])
         await update_shortener_config({"validity_hours": hours})
-        await message.reply_text(f"⏳ **Validity Time Updated!**\nअब टोकन **{hours} घंटे** तक वैलिड रहेगा।")
+        await message.reply_text(f"⏳ **Validity Updated!**\nअब टोकन **{hours} घंटे** तक वैलिड रहेगा।")
     except Exception:
-        await message.reply_text("❌ **Format:** `/set_shortener_time 24` (Hours in number)")
+        await message.reply_text("❌ **Format:** `/set_shortener_time 24`")
 
 @Client.on_message(filters.command("shortener_on") & filters.user(ADMIN_ID))
 async def shortener_on_cmd(client, message):
