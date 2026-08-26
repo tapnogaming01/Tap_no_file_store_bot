@@ -10,7 +10,6 @@ user_pass_tokens = db["user_pass_tokens"]
 files = db["stored_files"]
 mappings = db["story_mappings"]
 
-# --- Shortener Config Engine ---
 async def get_shortener_config():
     config = await shortener_settings.find_one({"type": "config"})
     if not config:
@@ -28,7 +27,6 @@ async def get_shortener_config():
 async def update_shortener_config(data: dict):
     await shortener_settings.update_one({"type": "config"}, {"$set": data}, upsert=True)
 
-# --- User Token Expiry Logic ---
 async def is_user_token_valid(user_id: int):
     config = await get_shortener_config()
     if not config.get("is_active", True):
@@ -53,20 +51,23 @@ async def grant_user_pass(user_id: int):
     )
     return hours
 
-# --- File Ref & Story Mappings ---
 async def save_file_ref(file_token: str, msg_id: int, chat_id: int):
-    await files.insert_one({"token": file_token, "msg_id": msg_id, "chat_id": chat_id})
+    await files.update_one(
+        {"token": file_token},
+        {"$set": {"msg_id": msg_id, "chat_id": chat_id}},
+        upsert=True
+    )
 
 async def get_file_ref(file_token: str):
     return await files.find_one({"token": file_token})
 
 async def save_mapping(story_name: str, channel_id: int):
     await mappings.update_one(
-        {"story": story_name.upper()},
+        {"story": story_name.strip().upper()},
         {"$set": {"channel_id": channel_id}},
         upsert=True
     )
 
 async def get_target_channel(story_name: str):
-    doc = await mappings.find_one({"story": story_name.upper()})
+    doc = await mappings.find_one({"story": story_name.strip().upper()})
     return doc["channel_id"] if doc else None
