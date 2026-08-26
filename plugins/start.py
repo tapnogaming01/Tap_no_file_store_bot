@@ -1,8 +1,8 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from database import get_file_ref, is_user_token_valid, grant_user_pass, get_shortener_config
-from utils import get_start_buttons, generate_short_link
-from config import LOG_CHANNEL, BOT_USERNAME
+from utils import get_start_buttons, generate_short_link, safe_url
+from config import LOG_CHANNEL, BOT_USERNAME, SUPPORT_GROUP
 
 @Client.on_message(filters.command("start") & filters.private)
 async def start_handler(client, message):
@@ -35,8 +35,8 @@ async def start_handler(client, message):
             short_url = await generate_short_link(verify_url)
 
             btn = InlineKeyboardMarkup([
-                [InlineKeyboardButton("🔓 Bypass Shortener to Unlock File", url=short_url)],
-                [InlineKeyboardButton("❓ How to Open Link", url="https://t.me/your_tutorial_link")]
+                [InlineKeyboardButton("🔓 Bypass Shortener to Unlock File", url=safe_url(short_url))],
+                [InlineKeyboardButton("❓ How to Open Link", url=safe_url(SUPPORT_GROUP))]
             ])
 
             await message.reply_text(
